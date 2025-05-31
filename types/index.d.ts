@@ -1,0 +1,14 @@
+interface User {
+    name: string;
+    email: string;
+    id: string;
+}
+
+interface SignUpParams {
+    uid: string;
+    name: string;
+    email: string;
+    password: string;
+}
+
+type FormType = 'sign-in' | 'sign-up';
