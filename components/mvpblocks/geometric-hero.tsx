@@ -156,7 +156,7 @@ export default function HeroGeometric({
       </div>
 
       <div className="container relative z-10 mx-auto max-w-6xl px-4 md:px-6">
-        <div className="mx-auto max-w-3xl text-center">
+        <div className="mx-auto max-w-5xl text-center">
           <motion.div
             custom={0}
             variants={fadeUpVariants}
@@ -199,9 +199,9 @@ export default function HeroGeometric({
             initial="hidden"
             animate="visible"
           >
-            <p className="mx-auto mb-10 max-w-xl px-4 text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl">
-              Accelerate your development with our modern, accessible, and
-              customizable UI components.
+            <p className="mx-auto mb-10 max-w-[590px] px-4 text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl">
+              
+              Get personalized career recommendations powered by AI. Discover opportunities that match your interests, skills, and dreams.
             </p>
           </motion.div>
 
@@ -226,7 +226,7 @@ export default function HeroGeometric({
               className="rounded-full border-primary/30 shadow-sm cursor-pointer hover:bg-primary/5"
               onClick={() => router.push("/chat")}
             >
-              View Components
+              Talk with AI Coach
             </Button>
           </motion.div>
         </div>
