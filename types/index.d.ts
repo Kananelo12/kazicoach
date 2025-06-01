@@ -10,5 +10,9 @@ interface SignUpParams {
     email: string;
     password: string;
 }
+interface SignInParams {
+    email: string;
+    idToken: string;
+}
 
 type FormType = 'sign-in' | 'sign-up';
