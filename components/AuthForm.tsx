@@ -122,11 +122,11 @@ const AuthForm = ({ type }: { type: FormType }) => {
   return loading ? (
     <RippleWaveLoader />
   ) : (
-    <div className="card-border lg:min-w-[566px]">
+    <div className="card-border-custom border-t border-slate-200 lg:min-w-[566px]">
       <div className="flex flex-col gap-6 card py-14 px-10">
         <div className="flex flex-row gap-2 justify-center">
-          <Image src="/logo.svg" alt="logo" width={38} height={32} />
-          <h2 className="text-primary-100">KaziCoach</h2>
+          <Image src="/coach.svg" alt="logo" width={38} height={32} />
+          <h2 className="text-primary-200 dark:text-primary-100">KaziCoach</h2>
         </div>
 
         <h3>Find your career path with AI</h3>

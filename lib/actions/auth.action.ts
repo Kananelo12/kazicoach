@@ -3,7 +3,8 @@
 import { firebaseAuth, firebaseDb } from "@/firebase/admin";
 import { cookies } from "next/headers";
 
-const ONE_WEEK = 60 * 60 * 24 * 7;
+// Session duration (1 week)
+const SESSION_DURATION = 60 * 60 * 24 * 7;
 
 export async function signUp(params: SignUpParams) {
   const { uid, name, email } = params;
@@ -57,11 +58,11 @@ export async function setSessionCookie(idToken: string) {
   const cookieStore = await cookies();
 
   const sessionCookie = await firebaseAuth.createSessionCookie(idToken, {
-    expiresIn: ONE_WEEK * 1000,
+    expiresIn: SESSION_DURATION * 1000, // milliseconds
   });
 
   cookieStore.set("session", sessionCookie, {
-    maxAge: ONE_WEEK,
+    maxAge: SESSION_DURATION,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     path: "/",
@@ -92,6 +93,14 @@ export async function signIn(params: SignInParams) {
     };
   }
 }
+
+// Sign out user by clearing the session cookie
+export async function signOut() {
+  const cookieStore = await cookies();
+
+  cookieStore.delete("session");
+}
+
 
 export async function getCurrentUser(): Promise<User | null> {
   const cookieStore = await cookies();

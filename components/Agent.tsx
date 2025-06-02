@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { vapi } from "@/lib/vapi.sdk";
+import { Button } from "./ui/button";
+import { ArrowLeft } from "lucide-react";
 
 enum CallStatus {
   INACTIVE = "INACTIVE",
@@ -100,23 +102,35 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
 
   return (
     <>
+      <div className="absolute top-10 left-4">
+        <Button
+          variant="ghost"
+          className="flex items-center gap-2"
+          onClick={() => router.push("/")}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Home
+        </Button>
+      </div>
+
       <div className="call-view">
         {/* AI Interviewer Card */}
-        <div className="card-interviewer">
+        <div className="card-interviewer shadow-lg">
           <div className="avatar">
             <Image
-              src="/ai-avatar.png"
+              src="/coach.svg"
               alt="AI Interviewer Avatar"
-              width={65}
-              height={54}
+              width={70}
+              height={70}
               className="object-cover"
             />
+            {isSpeaking && <span className="animate-speak" />}
           </div>
-          <h3>AI Interviewer</h3>
+          <h3 className="text-gray-700 dark:text-[#cbfbf1]">AI Coach</h3>
         </div>
 
         {/* User Profile Card */}
-        <div className="card-border">
+        <div className="card-border shadow-lg border-t border-slate-300">
           <div className="card-content">
             <Image
               src="/user-avatar.png"
@@ -125,18 +139,18 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
               height={539}
               className="rounded-full object-cover size-[120px]"
             />
-            <h3>{userName}</h3>
+            <h3 className="text-gray-700 dark:text-[#cbfbf1]">{userName}</h3>
           </div>
         </div>
       </div>
 
       {messages.length > 0 && (
-        <div className="transcript-border">
+        <div className="transcript-border shadow-lg border-t border-slate-200">
           <div className="transcript">
             <p
               key={lastMessage}
               className={cn(
-                "transition-opacity duration-500 opacity-0",
+                "text-gray-700 dark:text-[#62748e] transition-opacity duration-500 opacity-0",
                 "animate-fadeIn opacity-100"
               )}
             >
@@ -163,7 +177,10 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
             </span>
           </button>
         ) : (
-          <button className="btn-disconnect" onClick={() => handleCallDisconnect()}>
+          <button
+            className="btn-disconnect"
+            onClick={() => handleCallDisconnect()}
+          >
             End
           </button>
         )}

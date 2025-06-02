@@ -9,16 +9,17 @@ import { getFirestore } from "firebase/firestore";
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCGxQfwZZcyO6mY5Qs3psfqvduvIxb-n6Q",
-  authDomain: "kazicoach-79eba.firebaseapp.com",
-  projectId: "kazicoach-79eba",
-  storageBucket: "kazicoach-79eba.firebasestorage.app",
-  messagingSenderId: "871146951018",
-  appId: "1:871146951018:web:c9bb38de557bda9d83d513",
-  measurementId: "G-T1JVXJ1KSQ"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
+// Prevent re-initializing on hot reload
 const app = !getApps.length ? initializeApp(firebaseConfig) : getApp();
 
 export const firebaseAuth = getAuth(app);
