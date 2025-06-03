@@ -14,8 +14,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const CareerInputForm = () => {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     interests: "",
@@ -71,7 +73,7 @@ const CareerInputForm = () => {
 
     try {
         const inputData = {
-            interest: interestChips,
+            interests: interestChips,
             skills: skillChips,
             goals: formData.goals,
             education: formData.education,
@@ -79,9 +81,23 @@ const CareerInputForm = () => {
 
         console.log('Submitting career input:', inputData);
 
-        // Call the Gemini API
+        // Hit the gemini api route
+        const response = await fetch("/api/gemini", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(inputData),
+        });
 
-        // Save to firebase Firestore
+        const results = await response.json();
+
+        if (!response.ok || !results.success) {
+          setIsSubmitting(false);
+          toast.error(`Error: ${results.message || "Failed to submit form"}`);
+          return;
+        }
+
+        toast.success("Career path suggestions generated successfully!");
+        router.push("/results");
 
     } catch (error) {
         console.error("Error submitting form:", error);
@@ -93,23 +109,23 @@ const CareerInputForm = () => {
     <div className="container mx-auto px-6 py-8">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-b from-foreground to-foreground/80 bg-clip-text text-transparent mb-4">
             Tell Us About Yourself
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-muted-foreground">
             Help us understand your interests, skills, and dreams
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-3xl p-8 shadow-xl"
+          className="card-border-custom border-t border-slate-200 rounded-3xl p-8 shadow-xl"
         >
           {/* Interests Section */}
           <div className="mb-8">
-            <label className="block text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="block text-lg font-semibold mb-4">
               What are your interests?
-            </label>
+            </h3>
             <div className="flex flex-wrap gap-2 mb-4">
               {suggestedInterests.map((interest) => (
                 <Badge
@@ -148,9 +164,9 @@ const CareerInputForm = () => {
 
           {/* Skills Section */}
           <div className="mb-8">
-            <label className="block text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="block text-lg font-semibold mb-4">
               What skills do you have?
-            </label>
+            </h3>
             <div className="flex gap-2 mb-4">
               <Input
                 value={formData.skills}
@@ -191,9 +207,9 @@ const CareerInputForm = () => {
 
           {/* Goals Section */}
           <div className="mb-8">
-            <label className="block text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="block text-lg font-semibold mb-4">
               What are your life goals and aspirations?
-            </label>
+            </h3>
             <Textarea
               value={formData.goals}
               onChange={(e) =>
@@ -207,9 +223,9 @@ const CareerInputForm = () => {
 
           {/* Education Section */}
           <div className="mb-8">
-            <label className="block text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="block text-lg font-semibold mb-4">
               What is your level of education?
-            </label>
+            </h3>
             <Select
               onValueChange={(value) =>
                 setFormData({ ...formData, education: value })
