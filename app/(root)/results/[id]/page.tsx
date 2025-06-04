@@ -1,3 +1,13 @@
+import React from 'react'
+
+const page = () => {
+  return (
+    <div>page</div>
+  )
+}
+
+export default page
+
 // // app/results/[id]/page.tsx
 // import React from "react";
 // import { redirect } from "next/navigation";
