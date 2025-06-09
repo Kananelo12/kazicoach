@@ -31,9 +31,16 @@ interface RouteParams {
 
 type FormType = "sign-in" | "sign-up";
 
-interface CareerDocument {
-  id: string;
-  userId: string;
-  aiResponse: string[];
-  createdAt: string;
-}
+// interface CareerDocument {
+//   id: string;
+//   userId: string;
+//   aiResponse: string[];
+//   createdAt: string;
+// }
+
+// interface CareerSuggestion {
+//   title: string;
+//   description: string;
+//   suggestedSkills: string[];
+//   motivationQuote: string;
+// }

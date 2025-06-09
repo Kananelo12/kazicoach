@@ -1,49 +1,68 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { firebaseDb } from "@/firebase/admin";
-import { getCurrentUser } from "./auth.action";
-// import { cookies } from "next/headers";
+import { getCurrentUser } from "@/lib/actions/auth.action";
 
-export async function getCareerSuggestions() {
-  const snapShot = await firebaseDb.collection("career_suggestions").get();
-  snapShot.forEach((doc) => {
-    console.log(doc.id, "=>", doc.data());
-  });
+export interface CareerSuggestion {
+  title: string;
+  description: string;
+  suggestedSkills: string[];
+  motivationQuote: string;
 }
 
-export async function getCareerSuggestionsFromCurrentUser() {
-  // Get the currently authenticated user from cookies/session
-  const user = await getCurrentUser();
-  if (!user) {
-    return null;
-  }
+export interface CareerDocument {
+  id: string;
+  userId: string;
+  input: {
+    interests: string[];
+    skills: string[];
+    goals: string;
+    education: string;
+  };
+  aiResponse: {
+    suggestions: CareerSuggestion[];
+    timestamp: string;
+  };
+  createdAt: string;
+}
 
-  // Query firestore for this user's document, sorted by newest first
+export async function getCareerSuggestionsFromCurrentUser(): Promise<CareerDocument[] | null> {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
   const snapshots = await firebaseDb
     .collection("career_suggestions")
     .where("userId", "==", user.id)
     .orderBy("createdAt", "desc")
     .get();
 
-    const results: CareerDocument[] = snapshots.docs.map((doc) => {
-        const data = doc.data() as Omit<CareerDocument, "id">;
+  return snapshots.docs.map((snap) => {
+    const raw = snap.data() as any;
+    let normalizedAI: CareerDocument["aiResponse"];
 
-        return {
-            id: doc.id,
-            userId: data.userId,
-            aiResponse: data.aiResponse,
-            createdAt: data.createdAt,
-        };
-    });
+    // 1. If Firestore gave us an array of strings, wrap it:
+    if (Array.isArray(raw.aiResponse)) {
+      normalizedAI = {
+        suggestions: raw.aiResponse.map((title: string) => ({
+          title,
+          description: "",
+          suggestedSkills: [],
+          motivationQuote: "",
+        })),
+        timestamp: raw.createdAt,
+      };
+    } else {
+      // 2. Otherwise assume it's already the proper object shape
+      normalizedAI = raw.aiResponse;
+    }
 
-    return results;
-
-    // if (snapshots.empty) {
-    //     return [];
-    // }
-
-    // // Return the AI response from the first doc
-    // const doc = snapshots.docs[0];
-    // const data = doc.data() as CareerDocument;
-    // return data.aiResponse;
+    return {
+      id: snap.id,
+      userId: raw.userId,
+      input: raw.userInput,
+      aiResponse: normalizedAI,
+      createdAt: raw.createdAt,
+    };
+  });
 }

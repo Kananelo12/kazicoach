@@ -1,53 +1,119 @@
 // app/results/page.tsx
 import React from "react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCareerSuggestionsFromCurrentUser } from "@/lib/actions/crud.action";
-import { CareerCarousel } from "@/components/CareerCarousel";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Sparkles, Target, BookOpen } from "lucide-react";
 
 export default async function ResultsPage() {
-  // 1) Fetch all suggestions for the signed-in user
   const results = await getCareerSuggestionsFromCurrentUser();
-
-  // 2) If not authenticated, redirect to sign-in
-  if (results === null) {
-    redirect("/sign-in");
-  }
-
-  // 3) If authenticated but no docs, show “no results” message
+  if (results === null) redirect("/sign-in");
   if (results.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4 py-12">
-        <h1 className="text-2xl font-semibold mb-4">No Career Suggestions Found</h1>
-        <p className="text-gray-600 mb-6">
-          You haven’t generated any career suggestions yet.
-        </p>
-        <button
-          className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-        >
-          Go Back Home
-        </button>
+      <div className="min-h-screen flex items-center justify-center p-8">
+        <div className="text-center">
+          <h1 className="text-2xl mb-4">No Career Suggestions Found</h1>
+          <Link href="/input">
+            <Button size="lg">Take Assessment</Button>
+          </Link>
+        </div>
       </div>
     );
   }
 
-  // 4) Otherwise, render the carousel
+  const latest = results[0];
+  const { input, aiResponse } = latest;
+
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-12">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-center">
-          Your Career Recommendations
-        </h1>
-
-        <CareerCarousel results={results} />
-
-        <div className="mt-8 text-center">
-          <button
-            className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-          >
-            Back to Home
-          </button>
+    <div className="min-h-screen">
+      <header className="p-6 flex items-center justify-between shadow dark:bg-gray-900">
+        <div className="flex items-center gap-4">
+          <Link href="/">
+            <Button variant="ghost" className="flex items-center gap-2">
+              <ArrowLeft /> Home
+            </Button>
+          </Link>
+          <Link href="/input">
+            <Button variant="outline">Start Over</Button>
+          </Link>
         </div>
-      </div>
+      </header>
+
+      <main className="container mx-auto px-6 py-8 space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target /> Your Profile Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold mb-2">Interests</h4>
+                <div className="flex flex-wrap gap-2">
+                  {input.interests.map((i) => (
+                    <Badge key={i}>{i}</Badge>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2">Skills</h4>
+                <div className="flex flex-wrap gap-2">
+                  {input.skills.map((s) => (
+                    <Badge key={s}>{s}</Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">Goals</h4>
+              <p>{input.goals}</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">Education</h4>
+              <Badge>{input.education}</Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-8">
+          {aiResponse.suggestions.map((s, idx) => (
+            <Card key={idx}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles /> {s.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p>{s.description}</p>
+                <div>
+                  <h4 className="font-semibold flex items-center gap-2 mb-1">
+                    <BookOpen /> Skills to Learn
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {s.suggestedSkills.map((sk) => (
+                      <Badge key={sk}>{sk}</Badge>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-gray-100 p-4 rounded">
+                  <h4 className="font-semibold mb-1">Motivation</h4>
+                  <p className="italic">&quot;{s.motivationQuote}&quot;</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="text-center mt-12">
+          <Link href="/input">
+            <Button size="lg">Explore More Paths</Button>
+          </Link>
+        </div>
+      </main>
     </div>
   );
 }

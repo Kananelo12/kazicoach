@@ -1,76 +1,93 @@
+// app/api/gemini/route.ts
 import { generateText } from "ai";
 import { google } from "@ai-sdk/google";
 import { firebaseDb } from "@/firebase/admin";
 import { getCurrentUser } from "@/lib/actions/auth.action";
 
-export async function GET() {
-  return Response.json(
-    { success: true, data: "Gemini endpoint is live!" },
-    { status: 200 }
-  );
-}
-
 export async function POST(request: Request) {
   const { interests, skills, goals, education } = await request.json();
 
-  if (!interests || !skills || !goals || !education) {
-    return Response.json(
-      { success: false, message: "All fields are required." },
-      { status: 400 }
-    );
+  // 1) Validate
+  if (
+    !Array.isArray(interests) ||
+    !Array.isArray(skills) ||
+    typeof goals !== "string" ||
+    typeof education !== "string"
+  ) {
+    return Response.json({ success: false, message: "All fields required." }, { status: 400 });
   }
 
-  try {
-    // Get user ID from session
-    const user = await getCurrentUser();
-    if (!user) {
-      return Response.json(
-        { success: false, data: "User not authenticated." },
-        { status: 401 }
-      );
-    }
-    const userId = user.id;
+  // 2) Authenticate
+  const user = await getCurrentUser();
+  if (!user) {
+    return Response.json({ success: false, message: "Not authenticated." }, { status: 401 });
+  }
 
-    // Call Gemini AI to generate career suggestions
+  // 3) Prompt Gemini
+  const prompt = `
+Please return an array of exactly 3 objects in JSON with this schema (no markdown fences):
+[
+  {
+    "title": "...",
+    "description": "...",
+    "suggestedSkills": ["...","...",...],
+    "motivationQuote": "..."
+  },
+  ...
+]
+Base yours on:
+- Interests: ${interests.join(", ")}
+- Skills: ${skills.join(", ")}
+- Goals: ${goals}
+- Education: ${education}
+`;
+
+  try {
     const { text } = await generateText({
       model: google("gemini-2.0-flash-001"),
-      prompt: `Suggest 3 suitable career paths in JSON array format based on the following user profile:
-            Interests: ${interests.join(", ")}
-            Skills: ${skills.join(", ")}
-            Goals: ${goals}
-            Education: ${education}
-            
-            Return only a JSON array of strings, for example:
-        ["Career 1", "Career 2", "Career 3"]`,
+      prompt,
     });
 
-    // Parse the AI response (expects a JSON array)
-    let suggestions: string[] = [];
+    // 4) Strip any ```json and backticks
+    const cleaned = text
+      .replace(/```json\s*/i, "")
+      .replace(/```/g, "")
+      .trim();
+
+    // 5) Parse
+    let suggestions: {
+      title: string;
+      description: string;
+      suggestedSkills: string[];
+      motivationQuote: string;
+    }[];
+
     try {
-      suggestions = JSON.parse(text);
-    } catch {
-      // If parsing fails, wrap raw text in array
-      suggestions = [text.trim()];
+      suggestions = JSON.parse(cleaned);
+      if (!Array.isArray(suggestions)) {
+        throw new Error("Parsed result is not an array");
+      }
+    } catch (e) {
+      console.error("Parsing error:", e, "raw:", text);
+      return Response.json(
+        { success: false, message: "AI returned invalid JSON." },
+        { status: 500 }
+      );
     }
 
-    // Build the document to save
-    const careerDocument = {
-      userId: userId,
+    // 6) Build and save
+    const now = new Date().toISOString();
+    const doc = {
+      userId: user.id,
       userInput: { interests, skills, goals, education },
-      aiResponse: suggestions,
-      createdAt: new Date().toISOString(),
+      aiResponse: { suggestions, timestamp: now },
+      createdAt: now,
     };
+    await firebaseDb.collection("career_suggestions").add(doc);
 
-    // Save to Firestore
-    await firebaseDb.collection("career_suggestions").add(careerDocument);
-    console.log("Career suggestions saved successfully:", careerDocument);
-
-    return Response.json({ success: true }, { status: 200 });
+    return Response.json({ success: true, document: doc }, { status: 200 });
   } catch (error) {
     console.error("Error in /api/gemini:", error);
-    return Response.json(
-      { success: false, error: (error as Error).message },
-      { status: 500 }
-    );
+    return Response.json({ success: false, message: (error as Error).message }, { status: 500 });
   }
 }

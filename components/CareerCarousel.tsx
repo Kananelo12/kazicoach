@@ -1,4 +1,3 @@
-// components/AllCareerCarousel.tsx
 "use client";
 
 import React from "react";
@@ -12,40 +11,32 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { CareerDocument } from "@/lib/actions/crud.action";
 
-export interface CareerDocument {
-  id: string;
-  userId: string;
-  aiResponse: string[];
-  createdAt: string;
-}
-
-interface AllCareerCarouselProps {
+interface CareerCarouselProps {
   results: CareerDocument[];
 }
 
-export function CareerCarousel({ results }: AllCareerCarouselProps) {
-  if (results.length === 0) {
+export function CareerCarousel({ results }: CareerCarouselProps) {
+  if (!results.length) {
     return <p className="text-center text-gray-500">No career suggestions found.</p>;
   }
 
   return (
     <Carousel className="w-full max-w-2xl mx-auto">
       <CarouselContent>
-        {results.map((doc, index) => (
+        {results.map((doc, idx) => (
           <CarouselItem key={doc.id}>
             <div className="p-2">
               <Card>
                 <CardContent className="flex flex-col p-6 gap-4">
-                  <h3 className="text-xl font-semibold">
-                    Result {index + 1}
-                  </h3>
+                  <h3 className="text-xl font-semibold">Result {idx + 1}</h3>
 
-                  {/* Show first 3 suggestions as a preview */}
+                  {/* preview 3 suggestions */}
                   <ul className="space-y-1">
-                    {doc.aiResponse.slice(0, 3).map((career, i) => (
+                    {doc.aiResponse.suggestions.slice(0, 3).map((s, i) => (
                       <li key={i} className="text-gray-700">
-                        • {career}
+                        • {s.title}
                       </li>
                     ))}
                   </ul>
@@ -61,7 +52,6 @@ export function CareerCarousel({ results }: AllCareerCarouselProps) {
           </CarouselItem>
         ))}
       </CarouselContent>
-
       <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2" />
       <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2" />
     </Carousel>
